@@ -19,7 +19,7 @@ class GameMasterTestU(unittest.TestCase):
             gameMaster.addPlayer(pid)
 
         self.assertEqual(gameMaster.getPlayerCount(), len(playerIds))
-
+        
     def test_addPlayer_duplicate(self):
         gameMaster = GameMaster()
         playerIds = [2,2]

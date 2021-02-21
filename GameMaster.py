@@ -1,8 +1,10 @@
 from GameRoom import GameRoom
+from PlayerSocketListener import PlayerSocketListener
 import logging
 import time
 import threading
 import sys
+
 """
 This class is responsible for establishing connection with players
 """
@@ -12,14 +14,24 @@ class GameMaster:
         self.players = []
         self.minPlayersCount = 5
         self.playersLatch = threading.Semaphore(1)
+        self.runGame = True
+        self.playerConnListener = PlayerSocketListener("127.0.0.1", 8080, self.addPlayer)
+        self.playerConnListenerThread = threading.Thread(target = self.playerConnListener.start)
 
     def start(self):
         self.gameplay()
+        self.playerConnListenerThread.start()
 
-    def gameplay(self):
+    def stop(self):
+        self.playerConnListener.stop()
+        logging.info("Exit playerConnListenerThread: waiting")
+        self.playerConnListenerThread.join()
+        logging.info("Exit playerConnListenerThread: success")
+        self.runGame = False
         
-        runGame = True
-        while runGame:
+    def gameplay(self):
+        logging.info("starting GameMaster")
+        while self.runGame:
 
             time.sleep(0.5)
             # check if we can start a game
@@ -36,6 +48,7 @@ class GameMaster:
                 finally:
                     self.playersLatch.release()
 
+        self.cleanup()
 
     def addPlayer(self, playerId):
         try:
@@ -60,3 +73,7 @@ class GameMaster:
             return len(self.players)
         finally:
             self.playersLatch.release()
+
+    def cleanup(self):
+        for conn in self.players:
+            conn.close()
