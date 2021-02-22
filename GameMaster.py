@@ -13,7 +13,7 @@ class GameMaster:
 
     def __init__(self):
         self.players = []
-        self.minPlayersCount = 5
+        self.minPlayersCount = 1
         self.playersLatch = threading.Semaphore(1)
         self.runGame = True
         self.playerConnListener = PlayerSocketListener("127.0.0.1", 8088, self.addPlayer)
@@ -49,6 +49,8 @@ class GameMaster:
 
                     log(self.__class__.__name__).info("added {} players to game room".format(len(self.players)))
                     gameRoom = GameRoom(self.players[::])
+                    t = threading.Thread(target = gameRoom.startGame)
+                    t.start()
 
                     self.players.clear()
                 except:
@@ -91,7 +93,10 @@ if __name__ == "__main__":
     gameMaster = GameMaster()
     gameMaster.start()
 
-    if input() == "q":
-        gameMaster.stop()
+    command = input()
+    while command != "q":
+        continue
+    
+    gameMaster.stop()
 
     
