@@ -1,4 +1,5 @@
 import unittest
+import threading
 from GameMaster import GameMaster
 
 class GameMasterTestU(unittest.TestCase):
@@ -19,6 +20,22 @@ class GameMasterTestU(unittest.TestCase):
             gameMaster.addPlayer(pid)
 
         self.assertEqual(gameMaster.getPlayerCount(), len(playerIds))
+
+    def test_addPlayer_multiple_parallel(self):
+        gameMaster = GameMaster()
+        playerIds = [2,5,7,1,3]
+
+        threads = []
+        for pid in playerIds:
+            t = threading.Thread(target = gameMaster.addPlayer, args=(pid, ))
+            t.start()
+            threads.append(t)
+
+        for t in threads:
+            t.join()
+
+        self.assertEqual(gameMaster.getPlayerCount(), len(playerIds))
+        self.assertEqual(list(set(gameMaster.getPlayers())).sort(), playerIds.sort())
         
     def test_addPlayer_duplicate(self):
         gameMaster = GameMaster()

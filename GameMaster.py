@@ -85,6 +85,9 @@ class GameMaster:
         finally:
             self.playersLatch.release()
 
+    def getPlayers(self):
+        return self.players
+
     def cleanup(self):
         for conn in self.players:
             conn.close()

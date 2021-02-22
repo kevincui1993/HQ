@@ -22,7 +22,7 @@ class GameRoom:
         except:
             log(self.__class__.__name__).warning("Unexpected error: {}".format(sys.exc_info()[0]))
 
-    def getResponseFromPlayer(self, playerIndex):
+    def setResponseFromPlayer(self, playerIndex):
         conn = self.players[playerIndex]
         res = ""
         try: 
@@ -31,6 +31,8 @@ class GameRoom:
             log(self.__class__.__name__).info("Response from player {}: {}".format(conn, res))
         except socket.timeout:
             log(self.__class__.__name__).info("Failed to receive response from player {}".format(conn))
+        except:
+            log(self.__class__.__name__).warning("Unexpected error: {}".format(sys.exc_info()[0]))
         finally:
             self.response[playerIndex] = res[0] if len(res) > 0 else ""
 
@@ -44,7 +46,7 @@ class GameRoom:
             responseThreads = []
             for j in range(len(self.players)):
                 self.sendMessage(self.players[j], "dummy question?\n A:opionA B:optionB C:opitionC D:optionD\n")
-                responseThreads.append(threading.Thread(target = self.getResponseFromPlayer, args=(j, )))
+                responseThreads.append(threading.Thread(target = self.setResponseFromPlayer, args=(j, )))
                 responseThreads[-1].start()
             
             # wait to collect response for all players, timeout is 10 seconds
@@ -65,8 +67,7 @@ class GameRoom:
     def eliminatePlayers(self, answer):
         i = 0 
         while i < len(self.response):
-            print("index: {} response: {}".format(i, self.response[i]))
-            if self.response[i] != answer:
+            if self.response[i].lower() != answer.lower():
                 log(self.__class__.__name__).info("Eliminated player {}".format(self.players[i]))
                 self.sendMessage(self.players[i], "Wrong Answer! Better luck next time!\n")
                 self.players[i].close()
