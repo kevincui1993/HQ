@@ -5,9 +5,9 @@ import socket
 import warnings
 import time
 
-class PlayerSocketListenerTestU(unittest.TestCase):
+class PlayerSocketListenerTest(unittest.TestCase):
     def __init__(self, *args, **kwargs):
-        super(PlayerSocketListenerTestU, self).__init__(*args, **kwargs)
+        super(PlayerSocketListenerTest, self).__init__(*args, **kwargs)
         self.TEST_PORT = 3000
         self.TEST_HOST = '127.0.0.1'
         self.playerListener = PlayerSocketListener(self.TEST_HOST, self.TEST_PORT, self.mockPlayerCB)
@@ -20,9 +20,11 @@ class PlayerSocketListenerTestU(unittest.TestCase):
         self.mockPlayerCBCallCount += 1
 
     def test_startSocket(self):
+        # create a thread to start the playerListener
         connThread = threading.Thread(target = self.playerListener.start)
         connThread.start()
 
+        # connect to plyerListener
         try:  
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
         except:  
@@ -30,21 +32,19 @@ class PlayerSocketListenerTestU(unittest.TestCase):
         
         s.connect((self.TEST_HOST, self.TEST_PORT))  
         s.close()
-
         self.playerListener.stop()
         connThread.join()
+
         self.assertEqual(self.mockPlayerCBCallCount, 1)
 
     def test_stopSocket(self):
+        # create a thread to start the playerListener
         connThread = threading.Thread(target = self.playerListener.start)
         connThread.start()
 
         self.playerListener.stop()
-
         connThread.join()
         self.assertTrue(True)
-        self.assertEqual(self.mockPlayerCBCallCount, 0)
-
 
 if __name__ == '__main__':
     unittest.main()

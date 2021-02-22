@@ -1,6 +1,6 @@
 import socket
-import logging
 import sys
+from logger import *
 
 class PlayerSocketListener:
 
@@ -14,22 +14,24 @@ class PlayerSocketListener:
         self.addPlayercb = callback
 
     def start(self):
-        logging.info("PlayerSocketListener: started")
+        log(self.__class__.__name__).info("PlayerSocketListener: started")
         while self.enable:
             try: 
                 conn,addr = self.serverSocket.accept()
+                log(self.__class__.__name__).info("PlayerSocketListener: received a connection from {}".format(addr))
+                conn.send("Welcome to HQ game server!\n".encode())
                 self.addPlayercb(conn)
             except socket.timeout:
                 continue
             except:
-                logging.warning("Unexpected error: {}".format(sys.exc_info()[0]))
+                log(self.__class__.__name__).warning("Unexpected error: {}".format(sys.exc_info()[0]))
         
         self.cleanup()
-        logging.info("PlayerSocketListener: stopped")
+        log(self.__class__.__name__).info("PlayerSocketListener: stopped")
 
 
     def stop(self):
-        logging.info("stoppping PlayerSocketListener")
+        log(self.__class__.__name__).info("stoppping PlayerSocketListener")
         self.enable = False
 
     def cleanup(self):

@@ -4,10 +4,11 @@ import logging
 import time
 import threading
 import sys
-
+from logger import *
 """
 This class is responsible for establishing connection with players
 """
+
 class GameMaster:
 
     def __init__(self):
@@ -15,22 +16,29 @@ class GameMaster:
         self.minPlayersCount = 5
         self.playersLatch = threading.Semaphore(1)
         self.runGame = True
-        self.playerConnListener = PlayerSocketListener("127.0.0.1", 8080, self.addPlayer)
+        self.playerConnListener = PlayerSocketListener("127.0.0.1", 8088, self.addPlayer)
         self.playerConnListenerThread = threading.Thread(target = self.playerConnListener.start)
+        self.gamePlayThread = threading.Thread(target = self.gameplay)
+
+        logging.basicConfig(level = logging.INFO)
 
     def start(self):
-        self.gameplay()
+        self.gamePlayThread.start()
         self.playerConnListenerThread.start()
 
     def stop(self):
         self.playerConnListener.stop()
-        logging.info("Exit playerConnListenerThread: waiting")
+        log(self.__class__.__name__).info("Exit playerConnListenerThread: waiting")
         self.playerConnListenerThread.join()
-        logging.info("Exit playerConnListenerThread: success")
+        log(self.__class__.__name__).info("Exit playerConnListenerThread: success")
         self.runGame = False
+
+        log(self.__class__.__name__).info("Exit gamePlayThread: waiting")
+        self.gamePlayThread.join()
+        log(self.__class__.__name__).info("Exit gamePlayThread: success")
         
     def gameplay(self):
-        logging.info("starting GameMaster")
+        log(self.__class__.__name__).info("starting GameMaster")
         while self.runGame:
 
             time.sleep(0.5)
@@ -39,12 +47,12 @@ class GameMaster:
                 try:
                     self.playersLatch.acquire()
 
-                    logging.info("added {} players to game room".format(len(self.players)))
+                    log(self.__class__.__name__).info("added {} players to game room".format(len(self.players)))
                     gameRoom = GameRoom(self.players[::])
 
                     self.players.clear()
                 except:
-                    logging.warning("Unexpected error: {}".format(sys.exc_info()[0]))
+                    log(self.__class__.__name__).warning("Unexpected error: {}".format(sys.exc_info()[0]))
                 finally:
                     self.playersLatch.release()
 
@@ -52,20 +60,21 @@ class GameMaster:
 
     def addPlayer(self, playerId):
         try:
-            logging.info("Waiting to aquire the lock: player {}".format(playerId))
+            log(self.__class__.__name__).info("Waiting to aquire the lock: player {}".format(playerId))
             self.playersLatch.acquire()
-            logging.info("lock aquired: player {}".format(playerId))
+            log(self.__class__.__name__).info("lock aquired: player {}".format(playerId))
 
             if playerId not in self.players:
                 self.players.append(playerId)
-                logging.info("successfully added to the player pool: Player {}".format(playerId))
+                log(self.__class__.__name__).info("successfully added to the player pool: Player {}".format(playerId))
             else:
-                logging.warning("Failed to add player as there exists a player with the same Id: Player {}".format(playerId))
+                log(self.__class__.__name__).warning("Failed to add player as there exists a player with the same Id: Player {}".format(playerId))
         except:
-            logging.warning("Unexpected error: {} Player {}".format(sys.exc_info()[0], playerId))
+            log(self.__class__.__name__).warning("Unexpected error: {} Player {}".format(sys.exc_info()[0], playerId))
         finally:
             self.playersLatch.release()
-            logging.info("lock released: player {}".format(playerId))
+            log(self.__class__.__name__).info("lock released: player {}".format(playerId))
+            log(self.__class__.__name__).info("number of players in the pool: {}".format(len(self.players)))
 
     def getPlayerCount(self):
         try:
@@ -77,3 +86,12 @@ class GameMaster:
     def cleanup(self):
         for conn in self.players:
             conn.close()
+
+if __name__ == "__main__":
+    gameMaster = GameMaster()
+    gameMaster.start()
+
+    if input() == "q":
+        gameMaster.stop()
+
+    
