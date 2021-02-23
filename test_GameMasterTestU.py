@@ -1,50 +1,41 @@
 import unittest
 import threading
 from GameMaster import GameMaster
+from unittest.mock import Mock
 
 class GameMasterTestU(unittest.TestCase):
 
     def test_addPlayer_single(self):
         gameMaster = GameMaster()
-        playerId = 1
+        mockConnection = Mock()
 
-        gameMaster.addPlayer(playerId)
+        gameMaster.addPlayer(mockConnection)
 
         self.assertEqual(gameMaster.getPlayerCount(), 1)
 
     def test_addPlayer_multiple(self):
         gameMaster = GameMaster()
-        playerIds = [2,5,7,1,3]
+        mockConnections = [Mock(),Mock(),Mock(),Mock(),Mock()]
 
-        for pid in playerIds:
-            gameMaster.addPlayer(pid)
+        for conn in mockConnections:
+            gameMaster.addPlayer(conn)
 
-        self.assertEqual(gameMaster.getPlayerCount(), len(playerIds))
+        self.assertEqual(gameMaster.getPlayerCount(), len(mockConnections))
 
     def test_addPlayer_multiple_parallel(self):
         gameMaster = GameMaster()
-        playerIds = [2,5,7,1,3]
+        mockConnections = [Mock(),Mock(),Mock(),Mock(),Mock()]
 
         threads = []
-        for pid in playerIds:
-            t = threading.Thread(target = gameMaster.addPlayer, args=(pid, ))
+        for conn in mockConnections:
+            t = threading.Thread(target = gameMaster.addPlayer, args=(conn, ))
             t.start()
             threads.append(t)
 
         for t in threads:
             t.join()
 
-        self.assertEqual(gameMaster.getPlayerCount(), len(playerIds))
-        self.assertEqual(list(set(gameMaster.getPlayers())).sort(), playerIds.sort())
-        
-    def test_addPlayer_duplicate(self):
-        gameMaster = GameMaster()
-        playerIds = [2,2]
-
-        for pid in playerIds:
-            gameMaster.addPlayer(pid)
-
-        self.assertEqual(gameMaster.getPlayerCount(), 1)
+        self.assertEqual(gameMaster.getPlayerCount(), len(mockConnections))
 
 if __name__ == '__main__':
     unittest.main()

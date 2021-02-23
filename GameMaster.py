@@ -4,6 +4,7 @@ import logging
 import time
 import threading
 import sys
+import signal
 from logger import *
 """
 This class is responsible for establishing connection with players
@@ -25,6 +26,7 @@ class GameMaster:
     def start(self):
         self.gamePlayThread.start()
         self.playerConnListenerThread.start()
+        print("HQ game server successfully started! Press CTRL + C to stop")
 
     def stop(self):
         self.playerConnListener.stop()
@@ -60,22 +62,23 @@ class GameMaster:
 
         self.cleanup()
 
-    def addPlayer(self, playerId):
+    def addPlayer(self, conn):
         try:
-            log(self.__class__.__name__).info("Waiting to aquire the lock: player {}".format(playerId))
+            log(self.__class__.__name__).info("Waiting to aquire the lock: player {}".format(conn))
             self.playersLatch.acquire()
-            log(self.__class__.__name__).info("lock aquired: player {}".format(playerId))
+            log(self.__class__.__name__).info("lock aquired: player {}".format(conn))
 
-            if playerId not in self.players:
-                self.players.append(playerId)
-                log(self.__class__.__name__).info("successfully added to the player pool: Player {}".format(playerId))
-            else:
-                log(self.__class__.__name__).warning("Failed to add player as there exists a player with the same Id: Player {}".format(playerId))
+            playersNeeded = self.minPlayersCount - len(self.players) 
+            if playersNeeded > 0:
+                conn.send("Waiting for {} players to join the game!".format(playersNeeded).encode())
+            self.players.append(conn)
+            log(self.__class__.__name__).info("successfully added to the player pool: Player {}".format(conn))
+
         except:
-            log(self.__class__.__name__).warning("Unexpected error: {} Player {}".format(sys.exc_info()[0], playerId))
+            log(self.__class__.__name__).warning("Unexpected error: {} Player {}".format(sys.exc_info()[0], conn))
         finally:
             self.playersLatch.release()
-            log(self.__class__.__name__).info("lock released: player {}".format(playerId))
+            log(self.__class__.__name__).info("lock released: player {}".format(conn))
             log(self.__class__.__name__).info("number of players in the pool: {}".format(len(self.players)))
 
     def getPlayerCount(self):
@@ -92,14 +95,17 @@ class GameMaster:
         for conn in self.players:
             conn.close()
 
+    def signal_handler(self, sig, frame):
+        print("stopping running services...")
+        self.stop()
+        sys.exit(0)
+
 if __name__ == "__main__":
     gameMaster = GameMaster()
     gameMaster.start()
+    signal.signal(signal.SIGINT, gameMaster.signal_handler)
 
-    command = input()
-    while command != "q":
+    # keep running until CTRL + C is received
+    while True:
         continue
-    
-    gameMaster.stop()
-
     
