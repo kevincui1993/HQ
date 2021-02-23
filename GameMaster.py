@@ -12,12 +12,12 @@ This class is responsible for establishing connection with players
 
 class GameMaster:
 
-    def __init__(self, addr="0.0.0.0", port=8088):
+    def __init__(self, addr="0.0.0.0", port=3000):
         self.players = []
         self.minPlayersCount = 2
         self.playersLatch = threading.Semaphore(1)
         self.runGame = True
-        self.playerConnListener = PlayerSocketListener("0.0.0.0", 8088, self.addPlayer)
+        self.playerConnListener = PlayerSocketListener(addr, port, self.addPlayer)
         self.playerConnListenerThread = threading.Thread(target = self.playerConnListener.start)
         self.gamePlayThread = threading.Thread(target = self.gameplay)
 
