@@ -68,10 +68,11 @@ class GameMaster:
             self.playersLatch.acquire()
             log(self.__class__.__name__).info("lock aquired: player {}".format(conn))
 
-            playersNeeded = self.minPlayersCount - len(self.players) 
+            self.players.append(conn)
+            
+            playersNeeded = self.minPlayersCount - len(self.players)
             if playersNeeded > 0:
                 conn.send("Waiting for {} players to join the game!".format(playersNeeded).encode())
-            self.players.append(conn)
             log(self.__class__.__name__).info("successfully added to the player pool: Player {}".format(conn))
 
         except:
