@@ -184,6 +184,16 @@ class GameRoomTestU(unittest.TestCase):
         res = gameRoom.calculateStatistics("D")
 
         self.assertEqual(res, "Answer is D (A: 100.0% B: 0.0% C: 0.0% D: 0.0% Skipped: 0.0%)")
+        
+    def test_calculateStatistics_one_player_invalid_input(self):
+        mock1 = Mock()
+        mock1.recv.return_value = "123124adfad".encode()
+        gameRoom = GameRoom([mock1])
+        gameRoom.setResponseFromPlayer(0)
+
+        res = gameRoom.calculateStatistics("D")
+
+        self.assertEqual(res, "Answer is D (A: 0.0% B: 0.0% C: 0.0% D: 0.0% Skipped: 100.0%)")
 
     def test_calculateStatistics_two_players_incorrect(self):
         mock1 = Mock()
