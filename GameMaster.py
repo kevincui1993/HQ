@@ -12,7 +12,7 @@ This class is responsible for establishing connection with players
 
 class GameMaster:
 
-    def __init__(self):
+    def __init__(self, addr="0.0.0.0", port=8088):
         self.players = []
         self.minPlayersCount = 2
         self.playersLatch = threading.Semaphore(1)
@@ -69,10 +69,10 @@ class GameMaster:
             log(self.__class__.__name__).info("lock aquired: player {}".format(conn))
 
             self.players.append(conn)
-            
+
             playersNeeded = self.minPlayersCount - len(self.players)
             if playersNeeded > 0:
-                conn.send("Waiting for {} players to join the game!".format(playersNeeded).encode())
+                conn.send("Waiting for {} player(s) to join the game!".format(playersNeeded).encode())
             log(self.__class__.__name__).info("successfully added to the player pool: Player {}".format(conn))
 
         except:

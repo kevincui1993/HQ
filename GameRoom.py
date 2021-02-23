@@ -89,8 +89,10 @@ class GameRoom:
             return ""
         for r in self.response:
             index = ord(r.lower()) - ord('a')
-            if r != "" and index >= 0 and index < len(percentages):
-                percentages[index] +=1
+            if r != "":
+                index = ord(r.lower()) - ord('a')
+                if index >= 0 and index < len(percentages):
+                    percentages[index] +=1
             else:
                 percentages[-1] += 1 
         return "Answer is {} (A: {:.1%} B: {:.1%} C: {:.1%} D: {:.1%} Skipped: {:.1%})".format(answer, float(percentages[0])/total, \

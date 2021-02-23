@@ -8,7 +8,7 @@ import time
 class PlayerSocketListenerTest(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(PlayerSocketListenerTest, self).__init__(*args, **kwargs)
-        self.TEST_PORT = 3000
+        self.TEST_PORT = 8088
         self.TEST_HOST = '127.0.0.1'
         self.playerListener = PlayerSocketListener(self.TEST_HOST, self.TEST_PORT, self.mockPlayerCB)
         self.mockPlayerCBCallCount = 0
