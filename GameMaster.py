@@ -16,7 +16,7 @@ class GameMaster:
         self.minPlayersCount = 2
         self.playersLatch = threading.Semaphore(1)
         self.runGame = True
-        self.playerConnListener = PlayerSocketListener("127.0.0.1", 8088, self.addPlayer)
+        self.playerConnListener = PlayerSocketListener("0.0.0.0", 8088, self.addPlayer)
         self.playerConnListenerThread = threading.Thread(target = self.playerConnListener.start)
         self.gamePlayThread = threading.Thread(target = self.gameplay)
 
