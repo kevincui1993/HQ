@@ -72,7 +72,7 @@ class GameMaster:
 
             playersNeeded = self.minPlayersCount - len(self.players)
             if playersNeeded > 0:
-                conn.send("Waiting for {} player(s) to join the game!".format(playersNeeded).encode())
+                conn.send("Waiting for {} player(s) to join the game!\n".format(playersNeeded).encode())
             log(self.__class__.__name__).info("successfully added to the player pool: Player {}".format(conn))
 
         except:
