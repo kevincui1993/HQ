@@ -3,8 +3,13 @@ import socket
 import time
 import threading
 import sys
+from QuestionMaster import QuestionMaster
 
 class GameRoom:
+
+    # static question master class
+    questionMaster = QuestionMaster()
+
     def __init__(self, players):
         self.players = players
         self.response = ["" for i in range(len(self.players))]
@@ -44,8 +49,9 @@ class GameRoom:
 
             # asyc threads are used here to get player input
             responseThreads = []
+            ques, ans = GameRoom.questionMaster.generateQwithA()
             for j in range(len(self.players)):
-                self.sendMessage(self.players[j], "dummy question?\n A:opionA B:optionB C:opitionC D:optionD\n")
+                self.sendMessage(self.players[j], ques)
                 responseThreads.append(threading.Thread(target = self.setResponseFromPlayer, args=(j, )))
                 responseThreads[-1].start()
             
@@ -53,7 +59,7 @@ class GameRoom:
             for t in responseThreads:
                 t.join()
 
-            self.eliminatePlayers("A")
+            self.eliminatePlayers(ans)
             numRound += 1
 
         if len(self.players) == 1:
