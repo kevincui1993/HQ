@@ -18,6 +18,13 @@ class GameRoom:
             #set a timeout value of 10s to align with how long we should wait a response for a question
             pconn.settimeout(10)
 
+    def broadcast(self, message):
+        for conn in self.players:
+            try:
+                conn.send((message + "\n").encode())
+            except:
+                log(self.__class__.__name__).warning("Unexpected error: {}".format(sys.exc_info()[0]))
+
     def getPlayerCount(self):
         return len(self.players)
 
@@ -43,15 +50,17 @@ class GameRoom:
 
     def startGame(self):
         log(self.__class__.__name__).info("Started game in game room")
+        self.broadcast("Game started! You have 10 seconds to answer each question!")
         numRound = 1
         while len(self.players) > 1:
             log(self.__class__.__name__).info("Progress: round {}".format(numRound))
 
+            ques, ans = GameRoom.questionMaster.generateQwithA()
+            self.broadcast(ques)
+
             # asyc threads are used here to get player input
             responseThreads = []
-            ques, ans = GameRoom.questionMaster.generateQwithA()
             for j in range(len(self.players)):
-                self.sendMessage(self.players[j], ques)
                 responseThreads.append(threading.Thread(target = self.setResponseFromPlayer, args=(j, )))
                 responseThreads[-1].start()
             
@@ -59,6 +68,9 @@ class GameRoom:
             for t in responseThreads:
                 t.join()
 
+            # sending statistics and eliminate players
+            stats = self.calculateStatistics(ans)
+            self.broadcast(stats)
             self.eliminatePlayers(ans)
             numRound += 1
 
@@ -69,8 +81,22 @@ class GameRoom:
         else:
             log(self.__class__.__name__).info("No Winner!")
 
+    def calculateStatistics(self, answer):
+        percentages = [0,0,0,0,0]
+        total = len(self.response)
+        if total <= 0:
+            log(self.__class__.__name__).warning("there is no player to calculate statistics on")
+            return ""
+        for r in self.response:
+            if r != "":
+                percentages[ord(r.lower()) - ord('a')] +=1
+            else:
+                percentages[-1] += 1 
+        return "Answer is {} (A: {:.1%} B: {:.1%} C: {:.1%} D: {:.1%} Skipped: {:.1%})".format(answer, float(percentages[0])/total, \
+            float(percentages[1])/total, float(percentages[2])/total, float(percentages[3])/total, float(percentages[4])/total)
 
     def eliminatePlayers(self, answer):
+        
         i = 0 
         while i < len(self.response):
             if self.response[i].lower() != answer.lower():

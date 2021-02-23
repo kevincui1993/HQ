@@ -13,14 +13,14 @@ class GameMaster:
 
     def __init__(self):
         self.players = []
-        self.minPlayersCount = 1
+        self.minPlayersCount = 2
         self.playersLatch = threading.Semaphore(1)
         self.runGame = True
         self.playerConnListener = PlayerSocketListener("127.0.0.1", 8088, self.addPlayer)
         self.playerConnListenerThread = threading.Thread(target = self.playerConnListener.start)
         self.gamePlayThread = threading.Thread(target = self.gameplay)
 
-        logging.basicConfig(level = logging.INFO)
+        logging.basicConfig(filename='hqgame.log', level=logging.INFO)
 
     def start(self):
         self.gamePlayThread.start()
@@ -42,8 +42,8 @@ class GameMaster:
         while self.runGame:
 
             time.sleep(0.5)
-            # check if we can start a game
-            if len(self.players) > self.minPlayersCount:
+            # start a game once the minimum amount of players is reached
+            if len(self.players) >= self.minPlayersCount:
                 try:
                     self.playersLatch.acquire()
 

@@ -132,5 +132,84 @@ class GameRoomTestU(unittest.TestCase):
 
         self.assertEqual(gameRoom.getPlayerCount(), 2)
 
+    def test_broadcast_empty_message(self):
+        mock = Mock()
+        gameRoom = GameRoom([mock])
+
+        gameRoom.broadcast("")
+
+        self.assertEqual(mock.send.call_count, 1)
+
+    def test_broadcast_valid_message(self):
+        mock = Mock()
+        gameRoom = GameRoom([mock])
+
+        gameRoom.broadcast("game started!")
+
+        self.assertEqual(mock.send.call_count, 1)
+
+    def test_broadcast_two_players(self):
+        mock1 = Mock()
+        mock2 = Mock()
+        gameRoom = GameRoom([mock1, mock2])
+
+        gameRoom.broadcast("game started!")
+
+        self.assertEqual(mock1.send.call_count, 1)
+        self.assertEqual(mock2.send.call_count, 1)
+
+    def test_calculateStatistics_no_player(self):
+        gameRoom = GameRoom([])
+
+        res = gameRoom.calculateStatistics("A")
+
+        self.assertEqual(res, "")
+
+    def test_calculateStatistics_one_player_correct(self):
+        mock1 = Mock()
+        mock1.recv.return_value = "A".encode()
+        gameRoom = GameRoom([mock1])
+        gameRoom.setResponseFromPlayer(0)
+
+        res = gameRoom.calculateStatistics("A")
+
+        self.assertEqual(res, "Answer is A (A: 100.0% B: 0.0% C: 0.0% D: 0.0% Skipped: 0.0%)")
+
+    def test_calculateStatistics_one_player_incorrect(self):
+        mock1 = Mock()
+        mock1.recv.return_value = "A".encode()
+        gameRoom = GameRoom([mock1])
+        gameRoom.setResponseFromPlayer(0)
+
+        res = gameRoom.calculateStatistics("D")
+
+        self.assertEqual(res, "Answer is D (A: 100.0% B: 0.0% C: 0.0% D: 0.0% Skipped: 0.0%)")
+
+    def test_calculateStatistics_two_players_incorrect(self):
+        mock1 = Mock()
+        mock1.recv.return_value = "A".encode()
+        mock2 = Mock()
+        mock2.recv.return_value = "B".encode()
+        gameRoom = GameRoom([mock1, mock2])
+        gameRoom.setResponseFromPlayer(0)
+        gameRoom.setResponseFromPlayer(1)
+
+        res = gameRoom.calculateStatistics("D")
+
+        self.assertEqual(res, "Answer is D (A: 50.0% B: 50.0% C: 0.0% D: 0.0% Skipped: 0.0%)")
+
+    def test_calculateStatistics_two_players_correct(self):
+        mock1 = Mock()
+        mock1.recv.return_value = "D".encode()
+        mock2 = Mock()
+        mock2.recv.return_value = "D".encode()
+        gameRoom = GameRoom([mock1, mock2])
+        gameRoom.setResponseFromPlayer(0)
+        gameRoom.setResponseFromPlayer(1)
+
+        res = gameRoom.calculateStatistics("D")
+
+        self.assertEqual(res, "Answer is D (A: 0.0% B: 0.0% C: 0.0% D: 100.0% Skipped: 0.0%)")
+
 if __name__ == '__main__':
     unittest.main()
