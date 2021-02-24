@@ -12,9 +12,9 @@ This class is responsible for establishing connection with players
 
 class GameMaster:
 
-    def __init__(self, addr="0.0.0.0", port=3000):
+    def __init__(self, addr="0.0.0.0", port=3000, minPlayers=2):
         self.players = []
-        self.minPlayersCount = 2
+        self.minPlayersCount = minPlayers
         self.playersLatch = threading.Semaphore(1)
         self.runGame = True
         self.playerConnListener = PlayerSocketListener(addr, port, self.addPlayer)
@@ -101,12 +101,20 @@ class GameMaster:
         self.stop()
         sys.exit(0)
 
-if __name__ == "__main__":
-    gameMaster = GameMaster()
-    gameMaster.start()
-    signal.signal(signal.SIGINT, gameMaster.signal_handler)
+def printHelpPage():
+    print("HQ players is an online multiplayer trivia questions contest")
+    print("to start the HQ server: python3 ./GameMaster.py [address] [port] [roomMinPlayers]")
 
-    # keep running until CTRL + C is received
-    while True:
-        continue
+if __name__ == "__main__":
+    if len(sys.argv) < 4:
+        printHelpPage()
+    else: 
+        addr,port,minPlayers = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])
+        gameMaster = GameMaster()
+        gameMaster.start()
+        signal.signal(signal.SIGINT, gameMaster.signal_handler)
+
+        # keep running until CTRL + C is received
+        while True:
+            continue
     
