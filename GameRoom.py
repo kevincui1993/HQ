@@ -126,6 +126,7 @@ class GameRoom:
             ques, ans, numChoices = GameRoom.questionMaster.generateQwithA()
             self.broadcast(ques)
 
+            log(self.__class__.__name__).info("Question: {}".format(ques))
             # asyc threads are used here to get player input
             responseThreads = []
             for j in range(len(self.players)):
