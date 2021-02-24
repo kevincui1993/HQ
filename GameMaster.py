@@ -47,6 +47,8 @@ class GameMaster:
             # start a game once the minimum amount of players is reached
             if len(self.players) >= self.minPlayersCount:
                 try:
+                    # sleep for 1.5 seconds to let more players in 
+                    time.sleep(1.5)
                     self.playersLatch.acquire()
 
                     log(self.__class__.__name__).info("added {} players to game room".format(len(self.players)))
