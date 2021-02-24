@@ -6,6 +6,17 @@ import sys
 from QuestionMaster import QuestionMaster
 
 class GameRoom:
+    '''
+    This class is responsible for sending questions to players, receiving their responses,
+    and generate statistics
+
+    Attributes
+    ----------
+    players : list(socket)
+        players pool
+    response : list(str)
+        list of response from the player for one round
+    '''
 
     # static question master class
     questionMaster = QuestionMaster()
@@ -23,6 +34,16 @@ class GameRoom:
             pconn.close()
 
     def broadcast(self, message):
+        ''' 
+        broadcast a message to all players in this game room
+
+        Parameters:
+            message (str) : message to be broadcasted
+
+        Returns:
+            Nothing
+        '''
+
         for conn in self.players:
             try:
                 conn.send((message + "\n").encode())
@@ -30,15 +51,47 @@ class GameRoom:
                 log(self.__class__.__name__).warning("Unexpected error: {}".format(sys.exc_info()[0]))
 
     def getPlayerCount(self):
+        ''' 
+        Returns the number of players in the room
+
+        Parameters:
+            Nothing
+
+        Returns:
+            len(self.players) (int): number of players in the room
+        '''
+
         return len(self.players)
 
     def sendMessage(self, conn, message):
+        ''' 
+        Sends a message to a socket
+
+        Parameters:
+            conn (socket) : a player connection
+            message (str) : message to be sent
+
+
+        Returns:
+            Nothing
+        '''
+
         try:
-            conn.send(message.encode())
+            conn.send((message + "\n").encode())
         except:
             log(self.__class__.__name__).warning("Unexpected error: {}".format(sys.exc_info()[0]))
 
     def setResponseFromPlayer(self, playerIndex):
+        ''' 
+        Records the resopnse from player
+
+        Parameters:
+            playerIndex (int) : the index of the player in the curretn room
+
+        Returns:
+            Nothing
+        '''
+
         conn = self.players[playerIndex]
         res = ""
         try: 
@@ -53,6 +106,17 @@ class GameRoom:
             self.response[playerIndex] = res[0] if len(res) > 0 else ""
 
     def startGame(self):
+        ''' 
+        This function is responsible for starting the game room, sending questions and receiving
+        response from the players
+
+        Parameters:
+            Nothing
+
+        Returns:
+            Nothing
+        '''
+
         log(self.__class__.__name__).info("Started game in game room")
         self.broadcast("Game started! You have 10 seconds to answer each question!")
         numRound = 1
@@ -80,12 +144,24 @@ class GameRoom:
 
         if len(self.players) == 1:
             log(self.__class__.__name__).info("Winner player {}".format(self.players[0]))
-            self.sendMessage(self.players[0], "Winner!\n")
+            self.sendMessage(self.players[0], "Winner!")
             self.players[0].close()
         else:
             log(self.__class__.__name__).info("No Winner!")
 
     def calculateStatistics(self, answer):
+        ''' 
+        Preparing the statistics for the most recent finished question. The statistics includes 
+        the correct answer, and the percentage of each choice selected by all the players in the 
+        game room
+
+        Parameters:
+            answer (str): the answer for the current question
+
+        Returns:
+            Nothing
+        '''
+
         percentages = [0,0,0,0,0]
         total = len(self.response)
         if total <= 0:
@@ -104,16 +180,25 @@ class GameRoom:
             float(percentages[1])/total, float(percentages[2])/total, float(percentages[3])/total, float(percentages[4])/total)
 
     def eliminatePlayers(self, answer):
-        
+        ''' 
+        Removes the eliminated players from the room 
+
+        Parameters:
+            answer (str): the answer for the current question
+
+        Returns:
+            Nothing
+        '''
+
         i = 0 
         while i < len(self.response):
             if self.response[i].lower() != answer.lower():
                 log(self.__class__.__name__).info("Eliminated player {}".format(self.players[i]))
-                self.sendMessage(self.players[i], "Wrong Answer! Better luck next time!\n")
+                self.sendMessage(self.players[i], "Wrong Answer! Better luck next time!")
                 self.players[i].close()
                 log(self.__class__.__name__).info("Closed connection for player {}".format(self.players[i]))
                 self.players.pop(i)
                 self.response.pop(i)
             else:
-                self.sendMessage(self.players[i], "Correct!\n")
+                self.sendMessage(self.players[i], "Correct!")
                 i+=1

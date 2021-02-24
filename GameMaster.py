@@ -11,6 +11,27 @@ This class is responsible for establishing connection with players
 """
 
 class GameMaster:
+    '''
+    This is the main class for starting game server and open up connection 
+    for players to connect. 
+
+    Attributes
+    ----------
+    players : list(socket)
+        players pool
+    minPlayersCount : int
+        minimum number of players to start a game room
+    playersLatch : Semaphore
+        protects accesss to player pool
+    runGame: boolean
+        controls whether game server should be running
+    playerConnListener: PlayerSocketListener
+        opens up socket for players to connect to
+    playerConnListenerThread: Thread
+        threads for playerConnListener
+    gamePlayThread: Thread
+        threads for running a game
+    '''
 
     def __init__(self, addr="0.0.0.0", port=3000, minPlayers=2):
         self.players = []
@@ -27,11 +48,31 @@ class GameMaster:
         self.cleanup()
 
     def start(self):
+        ''' 
+        Starts the GamesMaster server and open up sockets for players to connect
+
+        Parameters:
+            Nothing
+
+        Returns:
+            Nothing
+        '''
+
         self.gamePlayThread.start()
         self.playerConnListenerThread.start()
         print("HQ game server successfully started! Press CTRL + C to stop")
 
     def stop(self):
+        ''' 
+        Closes player sockets and connections then stop the GamesMaster server
+
+        Parameters:
+            Nothing
+
+        Returns:
+            Nothing
+        '''
+
         self.playerConnListener.stop()
         log(self.__class__.__name__).info("Exit playerConnListenerThread: waiting")
         self.playerConnListenerThread.join()
@@ -43,6 +84,17 @@ class GameMaster:
         log(self.__class__.__name__).info("Exit gamePlayThread: success")
         
     def gameplay(self):
+        ''' 
+        This function constanly looks at the player pool and starts a game 
+        room once the number of players in the pool exceeds minimium players 
+
+        Parameters:
+            Nothing
+
+        Returns:
+            Nothing
+        '''
+
         log(self.__class__.__name__).info("starting GameMaster")
         while self.runGame:
 
@@ -68,6 +120,16 @@ class GameMaster:
         self.cleanup()
 
     def addPlayer(self, conn):
+        ''' 
+        This function add a player connection to the players pool
+
+        Parameters:
+            conn (socket): a socket connection
+
+        Returns:
+            Nothing
+        '''
+
         try:
             log(self.__class__.__name__).info("Waiting to aquire the lock: player {}".format(conn))
             self.playersLatch.acquire()
@@ -88,6 +150,16 @@ class GameMaster:
             log(self.__class__.__name__).info("number of players in the pool: {}".format(len(self.players)))
 
     def getPlayerCount(self):
+        ''' 
+        Returns the number of players in the pool
+
+        Parameters:
+            Nothing
+
+        Returns:
+            len(self.players) (int): number of players in the player pool
+        '''
+
         try:
             self.playersLatch.acquire()
             return len(self.players)
@@ -95,13 +167,42 @@ class GameMaster:
             self.playersLatch.release()
 
     def getPlayers(self):
+        ''' 
+        Returns the the players pool, testing purpose only
+
+        Parameters:
+            Nothing
+
+        Returns:
+            self.players (list(socket)): player pool
+        '''
+
         return self.players
 
     def cleanup(self):
+        ''' 
+        Closes any active connection in the player pool
+
+        Parameters:
+            Nothing
+
+        Returns:
+            Nothing
+        '''
+
         for conn in self.players:
             conn.close()
 
     def signal_handler(self, sig, frame):
+        ''' 
+        Stop the game server if CTRL+C is received
+
+        Parameters:
+            Nothing
+
+        Returns:
+            Nothing
+        '''
         print("stopping running services...")
         self.stop()
         sys.exit(0)
