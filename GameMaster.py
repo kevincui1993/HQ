@@ -47,6 +47,27 @@ class GameMaster:
     def __del__(self):
         self.cleanup()
 
+    def broadcast(self, message):
+        ''' 
+        broadcast a message to all players in the player pool
+
+        Parameters:
+            message (str) : message to be broadcasted
+
+        Returns:
+            Nothing
+        '''
+
+        try:
+            self.playersLatch.acquire()
+            for conn in self.players:
+                try:
+                    conn.send((message + "\n").encode())
+                except:
+                    log(self.__class__.__name__).warning("Unexpected error: {}".format(sys.exc_info()[0]))
+        finally:
+            self.playersLatch.release()
+
     def start(self):
         ''' 
         Starts the GamesMaster server and open up sockets for players to connect
@@ -137,9 +158,6 @@ class GameMaster:
 
             self.players.append(conn)
 
-            playersNeeded = self.minPlayersCount - len(self.players)
-            if playersNeeded > 0:
-                conn.send("Waiting for {} player(s) to join the game!\n".format(playersNeeded).encode())
             log(self.__class__.__name__).info("successfully added to the player pool: Player {}".format(conn))
 
         except:
@@ -148,6 +166,11 @@ class GameMaster:
             self.playersLatch.release()
             log(self.__class__.__name__).info("lock released: player {}".format(conn))
             log(self.__class__.__name__).info("number of players in the pool: {}".format(len(self.players)))
+
+        
+        playersNeeded = self.minPlayersCount - self.getPlayerCount()
+        if playersNeeded > 0:
+            self.broadcast("Waiting for {} player(s) to join the game!".format(playersNeeded))
 
     def getPlayerCount(self):
         ''' 
@@ -216,7 +239,7 @@ if __name__ == "__main__":
         printHelpPage()
     else: 
         addr,port,minPlayers = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])
-        gameMaster = GameMaster()
+        gameMaster = GameMaster(addr, port, minPlayers)
         gameMaster.start()
         signal.signal(signal.SIGINT, gameMaster.signal_handler)
 
