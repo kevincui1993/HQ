@@ -13,6 +13,9 @@ class PlayerSocketListener:
         self.enable = True
         self.addPlayercb = callback
 
+    def __del__(self):
+        self.cleanup()
+
     def start(self):
         log(self.__class__.__name__).info("PlayerSocketListener: started")
         while self.enable:

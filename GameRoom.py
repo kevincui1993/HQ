@@ -18,6 +18,10 @@ class GameRoom:
             #set a timeout value of 10s to align with how long we should wait a response for a question
             pconn.settimeout(10)
 
+    def __del__(self):
+        for pconn in self.players:
+            pconn.close()
+
     def broadcast(self, message):
         for conn in self.players:
             try:

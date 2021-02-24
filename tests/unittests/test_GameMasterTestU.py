@@ -35,7 +35,7 @@ class GameMasterTestU(unittest.TestCase):
         for t in threads:
             t.join()
 
-        self.assertEqual(gameMaster.getPlayerCount(), len(mockConnections))
+        self.assertEquals(gameMaster.getPlayerCount(), len(mockConnections))
 
 if __name__ == '__main__':
     unittest.main()

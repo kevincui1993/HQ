@@ -23,6 +23,9 @@ class GameMaster:
 
         logging.basicConfig(filename='hqgame.log', level=logging.INFO)
 
+    def __del__(self):
+        self.cleanup()
+
     def start(self):
         self.gamePlayThread.start()
         self.playerConnListenerThread.start()
