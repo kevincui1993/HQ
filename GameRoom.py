@@ -123,7 +123,7 @@ class GameRoom:
         while len(self.players) > 1:
             log(self.__class__.__name__).info("Progress: round {}".format(numRound))
 
-            ques, ans = GameRoom.questionMaster.generateQwithA()
+            ques, ans, numChoices = GameRoom.questionMaster.generateQwithA()
             self.broadcast(ques)
 
             # asyc threads are used here to get player input
@@ -137,7 +137,7 @@ class GameRoom:
                 t.join()
 
             # sending statistics and eliminate players
-            stats = self.calculateStatistics(ans)
+            stats = self.calculateStatistics(ans, numChoices)
             self.broadcast(stats)
             self.eliminatePlayers(ans)
             numRound += 1
@@ -149,7 +149,7 @@ class GameRoom:
         else:
             log(self.__class__.__name__).info("No Winner!")
 
-    def calculateStatistics(self, answer):
+    def calculateStatistics(self, answer, numChoices):
         ''' 
         Preparing the statistics for the most recent finished question. The statistics includes 
         the correct answer, and the percentage of each choice selected by all the players in the 
@@ -157,12 +157,13 @@ class GameRoom:
 
         Parameters:
             answer (str): the answer for the current question
+            numChoices (int): number of choices in the question
 
         Returns:
-            Nothing
+            stats (str): statistics
         '''
 
-        percentages = [0,0,0,0,0]
+        percentages = [0 for i in range(numChoices+1)]
         total = len(self.response)
         if total <= 0:
             log(self.__class__.__name__).warning("there is no player to calculate statistics on")
@@ -176,8 +177,13 @@ class GameRoom:
                     percentages[-1] += 1 
             else:
                 percentages[-1] += 1 
-        return "Answer is {} (A: {:.1%} B: {:.1%} C: {:.1%} D: {:.1%} Skipped: {:.1%})".format(answer, float(percentages[0])/total, \
-            float(percentages[1])/total, float(percentages[2])/total, float(percentages[3])/total, float(percentages[4])/total)
+
+        stats = "Answer is {} (".format(answer)
+
+        for i in range(numChoices):
+            stats += "{}: {:.1%} ".format(chr(ord('A')+i), float(percentages[i])/total)
+        stats += "Skipped: {:.1%})".format(float(percentages[-1])/total)
+        return stats
 
     def eliminatePlayers(self, answer):
         ''' 

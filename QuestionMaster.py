@@ -80,7 +80,8 @@ class QuestionMaster:
             ans (str): the answer 
 
         Returns:
-            (formattedQText, ansText) (str, str) : a tuple with formatted text and the answer's tag
+            (formattedQText, ansText, numChoices) (str, str, int) : a tuple with formatted text, 
+            the answer's tag, and number of choices
         '''
 
         text = ['A', 'B', 'C', 'D', 'E']
@@ -92,7 +93,7 @@ class QuestionMaster:
                 ansText = text[i]
             formattedQText += "{}. {}\t".format(text[i], choices[i])
 
-        return (formattedQText, ansText)
+        return (formattedQText, ansText, len(choices))
 
     def generateQwithA(self):
         ''' 

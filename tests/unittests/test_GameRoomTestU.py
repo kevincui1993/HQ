@@ -161,7 +161,7 @@ class GameRoomTestU(unittest.TestCase):
     def test_calculateStatistics_no_player(self):
         gameRoom = GameRoom([])
 
-        res = gameRoom.calculateStatistics("A")
+        res = gameRoom.calculateStatistics("A", 4)
 
         self.assertEqual(res, "")
 
@@ -171,9 +171,20 @@ class GameRoomTestU(unittest.TestCase):
         gameRoom = GameRoom([mock1])
         gameRoom.setResponseFromPlayer(0)
 
-        res = gameRoom.calculateStatistics("A")
+        res = gameRoom.calculateStatistics("A", 4)
 
         self.assertEqual(res, "Answer is A (A: 100.0% B: 0.0% C: 0.0% D: 0.0% Skipped: 0.0%)")
+
+    def test_calculateStatistics_one_player_two_choices_correct(self):
+        mock1 = Mock()
+        mock1.recv.return_value = "A".encode()
+        gameRoom = GameRoom([mock1])
+        gameRoom.setResponseFromPlayer(0)
+
+        res = gameRoom.calculateStatistics("A", 2)
+
+        self.assertEqual(res, "Answer is A (A: 100.0% B: 0.0% Skipped: 0.0%)")
+
 
     def test_calculateStatistics_one_player_incorrect(self):
         mock1 = Mock()
@@ -181,7 +192,7 @@ class GameRoomTestU(unittest.TestCase):
         gameRoom = GameRoom([mock1])
         gameRoom.setResponseFromPlayer(0)
 
-        res = gameRoom.calculateStatistics("D")
+        res = gameRoom.calculateStatistics("D", 4)
 
         self.assertEqual(res, "Answer is D (A: 100.0% B: 0.0% C: 0.0% D: 0.0% Skipped: 0.0%)")
         
@@ -191,7 +202,7 @@ class GameRoomTestU(unittest.TestCase):
         gameRoom = GameRoom([mock1])
         gameRoom.setResponseFromPlayer(0)
 
-        res = gameRoom.calculateStatistics("D")
+        res = gameRoom.calculateStatistics("D", 4)
 
         self.assertEqual(res, "Answer is D (A: 0.0% B: 0.0% C: 0.0% D: 0.0% Skipped: 100.0%)")
 
@@ -204,7 +215,7 @@ class GameRoomTestU(unittest.TestCase):
         gameRoom.setResponseFromPlayer(0)
         gameRoom.setResponseFromPlayer(1)
 
-        res = gameRoom.calculateStatistics("D")
+        res = gameRoom.calculateStatistics("D", 4)
 
         self.assertEqual(res, "Answer is D (A: 50.0% B: 50.0% C: 0.0% D: 0.0% Skipped: 0.0%)")
 
@@ -217,7 +228,7 @@ class GameRoomTestU(unittest.TestCase):
         gameRoom.setResponseFromPlayer(0)
         gameRoom.setResponseFromPlayer(1)
 
-        res = gameRoom.calculateStatistics("D")
+        res = gameRoom.calculateStatistics("D", 4)
 
         self.assertEqual(res, "Answer is D (A: 0.0% B: 0.0% C: 0.0% D: 100.0% Skipped: 0.0%)")
 

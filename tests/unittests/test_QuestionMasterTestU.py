@@ -76,7 +76,7 @@ class QuestionMasterTestU(unittest.TestCase):
         qMaster = QuestionMaster(False)
         questionStr, choices, ans = "question?", ["ans1", "ans2", "ans3", "ans4"], "ans4"
 
-        formattedQText, ansText = qMaster.formatQuestionText(questionStr, choices, ans)
+        formattedQText, ansText, numChoices = qMaster.formatQuestionText(questionStr, choices, ans)
 
         self.assertTrue("question?" in formattedQText)
         self.assertTrue("A. " in formattedQText)
@@ -85,12 +85,13 @@ class QuestionMasterTestU(unittest.TestCase):
         self.assertTrue("\tD. " in formattedQText)
         self.assertTrue("\tE. " not in formattedQText)
         self.assertEquals(formattedQText[formattedQText.find(ans)-3], ansText)
+        self.assertEquals(numChoices, len(choices))
 
     def test_formatQuestionText_true_false(self):
         qMaster = QuestionMaster(False)
         questionStr, choices, ans = "question?", ["true","false"], "true"
 
-        formattedQText, ansText = qMaster.formatQuestionText(questionStr, choices, ans)
+        formattedQText, ansText, numChoices = qMaster.formatQuestionText(questionStr, choices, ans)
 
         self.assertTrue("question?" in formattedQText)
         self.assertTrue("A. " in formattedQText)
@@ -99,6 +100,7 @@ class QuestionMasterTestU(unittest.TestCase):
         self.assertTrue("\tD. " not in formattedQText)
         self.assertTrue("\tE. " not in formattedQText)
         self.assertEquals(formattedQText[formattedQText.find(ans)-3], ansText)
+        self.assertEquals(numChoices, len(choices))
 
         
 if __name__ == '__main__':

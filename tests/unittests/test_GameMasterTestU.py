@@ -37,5 +37,36 @@ class GameMasterTestU(unittest.TestCase):
 
         self.assertEquals(gameMaster.getPlayerCount(), len(mockConnections))
 
+    def test_broadcast_empty_message(self):
+        gameMaster = GameMaster()
+        mock = Mock()
+        gameMaster.addPlayer(mock)
+
+        gameMaster.broadcast("")
+
+        self.assertEqual(mock.send.call_count, 2)
+
+    def test_broadcast_valid_message(self):
+        gameMaster = GameMaster()
+        mock = Mock()
+        gameMaster.addPlayer(mock)
+
+        gameMaster.broadcast("Starting game soon")
+
+        self.assertEqual(mock.send.call_count, 2)
+
+    def test_broadcast_two_players(self):
+        gameMaster = GameMaster()
+        mock1 = Mock()
+        mock2 = Mock()
+        
+        gameMaster.addPlayer(mock1)
+        gameMaster.addPlayer(mock2)
+
+        gameMaster.broadcast("Starting game soon")
+
+        self.assertEqual(mock1.send.call_count, 2)
+        self.assertEqual(mock2.send.call_count, 1)
+
 if __name__ == '__main__':
     unittest.main()
